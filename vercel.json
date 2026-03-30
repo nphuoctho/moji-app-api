@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "routes": [{ "src": "/(.*)", "dest": "/dist/main.js" }]
+}
