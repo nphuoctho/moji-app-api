@@ -34,13 +34,12 @@ export class AuthService {
 
   private async validateCredentials(email: string, password: string) {
     const user = await this.userRepository.findUserByEmail(email)
-    if (!user) {
-      throw new Error('Invalid credentials')
-    }
 
-    const ok = await bcrypt.compare(password, user.passwordHash)
-    if (!ok) {
-      throw new Error('Invalid credentials')
+    const dummyHash = '$2b$12$invalidhashfortimingprotection000000000000000000000'
+    const ok = await bcrypt.compare(password, user?.passwordHash ?? dummyHash)
+
+    if (!user || !ok) {
+      throw new AppError('Invalid credentials', 401)
     }
 
     return user
@@ -186,14 +185,13 @@ export class AuthService {
   async refresh(refreshToken: string, deviceId: string, meta: { ip?: string; userAgent?: string }) {
     const session = await this.validateRefreshSession(refreshToken, deviceId)
     const user = await this.userRepository.findUserById(session.userId)
-
     if (!user) {
-      throw new Error('User not found')
+      throw new AppError('User not found', 401)
     }
 
     const key = await this.signingKeyService.getSigningKeyById(session.keyId)
     if (!key) {
-      throw new Error('Signing key not found')
+      throw new AppError('Signing key not found', 404)
     }
 
     const newRefreshToken = crypto.randomBytes(48).toString('base64url')

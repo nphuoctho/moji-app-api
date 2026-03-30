@@ -25,6 +25,7 @@ const envSchema = z.object({
     .positive()
     .default(7 * 24 * 60 * 60), // 7 days
   JWT_PRIVATE_KEY_ENCRYPTION_KEY: z.string().min(1),
+  CLIENT_URL: z.url().default('http://localhost:5173'),
 })
 
 const envParsed = envSchema.safeParse(process.env)
