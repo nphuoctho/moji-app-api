@@ -1,7 +1,7 @@
 import crypto from 'node:crypto'
 import type { Types } from 'mongoose'
-import { decryptText, encryptText } from '@/shared/utils/crypto.utils'
-import { logger } from '@/shared/utils/logger'
+import { decryptText, encryptText } from '@/shared/utils/crypto.util'
+import { logger } from '@/shared/utils/logger.util'
 import { SigningKeyModel } from './signing-key.schema'
 
 export class SigningKeyService {

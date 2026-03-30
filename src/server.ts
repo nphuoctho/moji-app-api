@@ -1,7 +1,7 @@
 import { createApp } from './app'
 import { connectDatabase, Database } from './config/database'
 import { env } from './config/env'
-import { logger } from './shared/utils/logger'
+import { logger } from './shared/utils/logger.util'
 
 async function bootstrap(): Promise<void> {
   await connectDatabase()

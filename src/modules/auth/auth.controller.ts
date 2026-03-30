@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import { env } from '@/config/env'
+import { sendSuccess } from '@/shared/utils/response.util'
 import { type AuthService, authService } from './auth.service'
 
 export class AuthController {
@@ -17,7 +18,7 @@ export class AuthController {
     })
   }
 
-  async signInHandler(req: Request, res: Response) {
+  signInHandler = async (req: Request, res: Response) => {
     const result = await this.authService.signIn(req.body, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
@@ -27,7 +28,18 @@ export class AuthController {
     return res.status(200).json({ accessToken: result.accessToken })
   }
 
-  async refreshHandler(req: Request, res: Response) {
+  signUpHandler = async (req: Request, res: Response) => {
+    const result = await this.authService.signUp(req.body, {
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+      deviceId: req.body.devicedId,
+    })
+
+    this.setRefreshCookie(res, result.refreshToken)
+    sendSuccess(res, { accessToken: result.accessToken }, 201)
+  }
+
+  refreshHandler = async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refresh_token
     if (!refreshToken) {
       return res.status(401).json({ message: 'Missing refresh token' })

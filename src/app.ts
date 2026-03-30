@@ -1,11 +1,12 @@
 import compression from 'compression'
+import cookieParser from 'cookie-parser'
 import express from 'express'
 import helmet from 'helmet'
 import { pinoHttp } from 'pino-http'
 import router from './modules/index.routes'
 import { errorMiddleware } from './shared/middlewares/error.middleware'
 import { notFoundMiddleware } from './shared/middlewares/not-found.middleware'
-import { logger } from './shared/utils/logger'
+import { logger } from './shared/utils/logger.util'
 
 export function createApp(): express.Application {
   const app = express()
@@ -13,6 +14,7 @@ export function createApp(): express.Application {
   app.use(pinoHttp({ logger }))
   app.use(helmet())
   app.use(compression())
+  app.use(cookieParser())
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))
 

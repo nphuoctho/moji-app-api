@@ -1,5 +1,5 @@
 import mongoose, { type ConnectOptions } from 'mongoose'
-import { logger } from '@/shared/utils/logger'
+import { logger } from '@/shared/utils/logger.util'
 import { env } from './env'
 
 type DatabaseConfig = {

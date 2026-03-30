@@ -14,10 +14,17 @@ export interface UserDocument extends Document {
   updatedAt: Date
 }
 
-export interface CreateUserDto {
+export interface CreateUserPayload {
   email: string
   username: string
-  passord: string
-  firstname: string
-  lastname: string
+  password: string
+  displayName: string
+}
+
+export interface UpdateUserPayload {
+  displayName?: string
+  avatarUrl?: string
+  avatarId?: string
+  bio?: string
+  phone?: string
 }

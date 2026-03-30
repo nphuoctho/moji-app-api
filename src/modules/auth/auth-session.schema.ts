@@ -54,7 +54,7 @@ const authSessionSchema = new Schema<AuthSessionDocument>(
   },
 )
 
-authSessionSchema.index({ userId: 1, deviced: 1, revokedAt: 1 })
+authSessionSchema.index({ userId: 1, deviceId: 1, revokedAt: 1 })
 authSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
 
 export const AuthSessionModel = model<AuthSessionDocument>('AuthSession', authSessionSchema)

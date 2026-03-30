@@ -1,18 +1,18 @@
-export interface SignUpDto {
+export interface SignUpPayload {
   email: string
   username: string
-  passord: string
+  password: string
   firstname: string
   lastname: string
 }
 
-export interface SignInDto {
+export interface SignInPayload {
   email: string
   password: string
   deviceId: string
 }
 
-export interface RefreshTokenDto {
+export interface RefreshTokenPayload {
   deviceId: string
 }
 
