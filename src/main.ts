@@ -1,4 +1,4 @@
-import { createApp } from './app'
+import { createApp } from './app.js'
 import { connectDatabase, Database } from './config/database'
 import { env } from './config/env'
 import { logger } from './shared/utils/logger.util'

@@ -27,5 +27,7 @@
   "editor.codeActionsOnSave": {
     "quickfix.biome": "explicit",
     "source.organizeImports.biome": "explicit"
-  }
+  },
+
+  "js/ts.preferences.importModuleSpecifierEnding": "minimal"
 }
