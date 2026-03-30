@@ -14,16 +14,6 @@
       "@/*": ["./src/*"]
     },
 
-    // Output
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": true,
-
-    // Root
-    "rootDir": "./src",
-
     // Strict Type Checking
     "strict": true,
     "noImplicitAny": true,
@@ -32,12 +22,18 @@
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Emit
+    "noEmit": true,
 
     // Interoperability
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    // "allowSyntheticDefaultImports": true,
+    // "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }
