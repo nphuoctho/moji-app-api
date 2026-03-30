@@ -167,7 +167,7 @@ export class AuthService {
     const user = await this.userRepository.createUser({
       email: signUpPayload.email,
       username: signUpPayload.username,
-      password: passwordHash,
+      passwordHash,
       displayName: `${signUpPayload.firstname} ${signUpPayload.lastname}`,
     })
 

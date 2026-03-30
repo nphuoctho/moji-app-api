@@ -17,7 +17,7 @@ export interface UserDocument extends Document {
 export interface CreateUserPayload {
   email: string
   username: string
-  password: string
+  passwordHash: string
   displayName: string
 }
 

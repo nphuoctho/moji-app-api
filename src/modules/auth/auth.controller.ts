@@ -1,7 +1,9 @@
-import type { Request, Response } from 'express'
+import type { Response } from 'express'
 import { env } from '@/config/env'
-import { sendSuccess } from '@/shared/utils/response.util'
+import type { ValidatedRequest } from '@/shared/types/request.types'
+import { sendError, sendSuccess } from '@/shared/utils/response.util'
 import { type AuthService, authService } from './auth.service'
+import type { refreshDto, signInDto, signUpDto } from './auth.validator'
 
 export class AuthController {
   private readonly REFRESH_TOKEN = 'refresh_token'
@@ -18,32 +20,39 @@ export class AuthController {
     })
   }
 
-  signInHandler = async (req: Request, res: Response) => {
+  signInHandler = async (req: ValidatedRequest<typeof signInDto>, res: Response) => {
     const result = await this.authService.signIn(req.body, {
       ip: req.ip,
       userAgent: req.headers['user-agent'],
     })
 
     this.setRefreshCookie(res, result.refreshToken)
-    return res.status(200).json({ accessToken: result.accessToken })
+    sendSuccess(res, { accessToken: result.accessToken }, 200)
   }
 
-  signUpHandler = async (req: Request, res: Response) => {
-    const result = await this.authService.signUp(req.body, {
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-      deviceId: req.body.devicedId,
-    })
+  signUpHandler = async (req: ValidatedRequest<typeof signUpDto>, res: Response) => {
+    const { firstname, lastname, deviceId, ...rest } = req.body
+
+    const result = await this.authService.signUp(
+      {
+        ...rest,
+        firstname,
+        lastname,
+      },
+      {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        deviceId,
+      },
+    )
 
     this.setRefreshCookie(res, result.refreshToken)
     sendSuccess(res, { accessToken: result.accessToken }, 201)
   }
 
-  refreshHandler = async (req: Request, res: Response) => {
+  refreshHandler = async (req: ValidatedRequest<typeof refreshDto>, res: Response) => {
     const refreshToken = req.cookies?.refresh_token
-    if (!refreshToken) {
-      return res.status(401).json({ message: 'Missing refresh token' })
-    }
+    if (!refreshToken) sendError(res, 'Missing refresh token', 401)
 
     const result = await this.authService.refresh(refreshToken, req.body.deviceId, {
       ip: req.ip,
@@ -51,7 +60,7 @@ export class AuthController {
     })
 
     this.setRefreshCookie(res, result.refreshToken)
-    return res.status(200).json({ accessToken: result.accessToken })
+    sendSuccess(res, { accessToken: result.accessToken }, 200)
   }
 }
 
