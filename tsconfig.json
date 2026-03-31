@@ -13,6 +13,9 @@
       "@/*": ["src/*"]
     },
 
+    "outDir": "./dist",
+    "rootDir": "./src",
+
     // Type check
     "noEmit": true,
 
