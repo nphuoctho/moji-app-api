@@ -1,6 +1,7 @@
 import { Router } from 'express'
+import { authenticate } from '@/shared/middlewares/auth.middleware'
 import { authRouter } from './auth/auth.module'
-import { userRouter } from './user/user.routes'
+import { userRouter } from './user/user.module'
 
 const router: Router = Router()
 
@@ -16,6 +17,9 @@ router.get('/', (_, res) => {
 })
 
 router.use('/auth', authRouter)
+
+router.use(authenticate)
+
 router.use('/users', userRouter)
 
 export default router

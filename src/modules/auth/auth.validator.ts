@@ -35,3 +35,5 @@ export const refreshDto = z.object({
     deviceId: z.uuid(),
   }),
 })
+
+export const signOutDto = z.object({})

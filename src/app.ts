@@ -38,6 +38,7 @@ export function createApp(): express.Application {
   app.get('/', (_req, res) =>
     res.send('Welcome to moji-api-app! Please visit /api/v1 for API endpoints.'),
   )
+
   app.use('/api/v1', router)
 
   // Error Handler

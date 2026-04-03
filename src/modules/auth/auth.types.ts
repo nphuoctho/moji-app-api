@@ -20,8 +20,6 @@ export interface TokenPayload {
   sub: string // user ID
   sid: string
   kid: string
-  email: string
-  username: string
 }
 
 export interface AuthTokens {

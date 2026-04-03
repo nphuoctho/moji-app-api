@@ -86,15 +86,11 @@ export class AuthService {
     userId: Types.ObjectId,
     sessionId: Types.ObjectId,
     kid: string,
-    email: string,
-    username: string,
   ): TokenPayload {
     return {
       sub: String(userId),
       sid: String(sessionId),
       kid,
-      email,
-      username,
     }
   }
 
@@ -121,13 +117,7 @@ export class AuthService {
   ) {
     const privateKey = this.signingKeyService.getPrivateKeyFromRecord(key.privateKeyEncrypted)
 
-    const payload = this.buildAccessTokenPayload(
-      user._id,
-      sessionId,
-      key.kid,
-      user.email,
-      user.username,
-    )
+    const payload = this.buildAccessTokenPayload(user._id, sessionId, key.kid)
 
     return this.signAccessToken(payload, privateKey)
   }
@@ -198,6 +188,7 @@ export class AuthService {
     const newRefreshTokenHash = hashToken(newRefreshToken)
     const newExpiresAt = new Date(Date.now() + this.REFRESH_EXPIRES_IN_SECONDS * 1000)
 
+    // Todo: need check why new session undefined
     const newSession = await this.authRepository.rotateRefreshSession(session._id, {
       userId: session.userId,
       keyId: session.keyId,
@@ -209,6 +200,10 @@ export class AuthService {
       userAgent: meta?.userAgent,
       rotatedFromSessionId: session._id,
     })
+
+    if (!newSession) {
+      throw new AppError('Create new session faild', 401)
+    }
 
     const accessToken = this.generateAccessToken(user, newSession._id, key)
 

@@ -1,6 +1,6 @@
 import type { Response } from 'express'
 import { env } from '@/config/env'
-import type { ValidatedRequest } from '@/shared/types/request.types'
+import type { AuthenticatedRequest, ValidatedRequest } from '@/shared/types/request.types'
 import { sendError, sendSuccess } from '@/shared/utils/response.util'
 import { type AuthService, authService } from './auth.service'
 import type { refreshDto, signInDto, signUpDto } from './auth.validator'
@@ -61,6 +61,32 @@ export class AuthController {
 
     this.setRefreshCookie(res, result.refreshToken)
     sendSuccess(res, { accessToken: result.accessToken }, 200)
+  }
+
+  signOutHandler = async (req: AuthenticatedRequest, res: Response) => {
+    await this.authService.signOutCurrentSession(req.user.sid)
+
+    res.clearCookie(this.REFRESH_TOKEN, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/api/v1/auth/refresh',
+    })
+
+    sendSuccess(res, null, 200)
+  }
+
+  signOutAllHandler = async (req: AuthenticatedRequest, res: Response) => {
+    await this.authService.signOutAllSession(req.user.sub)
+
+    res.clearCookie(this.REFRESH_TOKEN, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/api/v1/auth/refresh',
+    })
+
+    sendSuccess(res, null, 200)
   }
 }
 
