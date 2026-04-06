@@ -9,6 +9,7 @@ import router from './modules/index.routes'
 import { errorMiddleware } from './shared/middlewares/error.middleware'
 import { notFoundMiddleware } from './shared/middlewares/not-found.middleware'
 import { logger } from './shared/utils/logger.util'
+import { setupSwagger } from './shared/utils/swagger.util'
 
 export function createApp(): express.Application {
   const app = express()
@@ -40,6 +41,7 @@ export function createApp(): express.Application {
   )
 
   app.use('/api/v1', router)
+  setupSwagger(app)
 
   // Error Handler
   app.use(notFoundMiddleware)

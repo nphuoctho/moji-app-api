@@ -52,7 +52,10 @@ export class AuthController {
 
   refreshHandler = async (req: ValidatedRequest<typeof refreshDto>, res: Response) => {
     const refreshToken = req.cookies?.refresh_token
-    if (!refreshToken) sendError(res, 'Missing refresh token', 401)
+    if (!refreshToken) {
+      sendError(res, 'Missing refresh token', 401)
+      return
+    }
 
     const result = await this.authService.refresh(refreshToken, req.body.deviceId, {
       ip: req.ip,
