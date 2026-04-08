@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthRepository } from '../auth.repository'
-import { AuthSessionModel } from '../auth-session.schema'
-import type { AuthSessionPayload } from '../auth-session.types'
+import { AuthRepository } from './auth.repository'
+import { AuthSessionModel } from './auth-session.schema'
+import type { AuthSessionPayload } from './auth-session.types'
 
-vi.mock('../auth-session.schema', () => ({
+vi.mock('./auth-session.schema', () => ({
   AuthSessionModel: {
     create: vi.fn(),
     findOne: vi.fn(),

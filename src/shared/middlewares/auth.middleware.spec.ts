@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { authenticate } from '../auth.middleware'
-import { AppError } from '../error.middleware'
+import { authenticate } from './auth.middleware'
+import { AppError } from './error.middleware'
 
 vi.mock('@/config/env', () => ({
   env: {

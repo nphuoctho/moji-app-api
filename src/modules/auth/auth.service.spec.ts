@@ -1,8 +1,8 @@
 import type { Types } from 'mongoose'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppError } from '@/shared/middlewares/error.middleware'
-import type { AuthRepository } from '../auth.repository'
-import { AuthService } from '../auth.service'
+import type { AuthRepository } from './auth.repository'
+import { AuthService } from './auth.service'
 import type { SigningKeyService } from '../signing-key/signing-key.service'
 import type { UserRepository } from '../user/user.repository'
 

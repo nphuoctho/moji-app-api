@@ -1,7 +1,7 @@
 import type { Response } from 'express'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AuthController } from '../auth.controller'
-import type { AuthService } from '../auth.service'
+import { AuthController } from './auth.controller'
+import type { AuthService } from './auth.service'
 
 vi.mock('@/config/env', () => ({
   env: {
