@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import type { TokenPayload } from '@/modules/auth/auth.types'
+import type { AccessTokenClaims } from '@/modules/auth/auth.types'
 import { SigningKeyModel } from '@/modules/signing-key/signing-key.schema'
 import { AppError } from './error.middleware'
 
@@ -13,7 +13,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
 
     const token = authHeader.slice(7)
 
-    const decoded = jwt.decode(token) as TokenPayload | null
+    const decoded = jwt.decode(token) as AccessTokenClaims | null
     if (!decoded?.kid) {
       throw new AppError('Unauthorized', 401)
     }
@@ -31,7 +31,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
       algorithms: ['RS256'],
       issuer: 'moji-api-app',
       audience: 'moji-api-client',
-    }) as TokenPayload
+    }) as AccessTokenClaims
 
     req.user = payload
     next()

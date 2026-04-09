@@ -5,10 +5,10 @@ const ALGO = 'aes-256-gcm'
 const IV_LENGTH = 12
 
 function getMasterKey(): Buffer {
-  const raw = env.JWT_PRIVATE_KEY_ENCRYPTION_KEY ?? ''
+  const raw = env.JWT_PRIVATE_ENCRYPTION_KEY ?? ''
   const key = Buffer.from(raw, 'base64')
   if (key.length !== 32) {
-    throw new Error('JWT_PRIVATE_KEY_ENCRYPTION_KEY must be 32-byte base64')
+    throw new Error('JWT_PRIVATE_ENCRYPTION_KEY must be 32-byte base64')
   }
 
   return key

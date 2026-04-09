@@ -17,29 +17,35 @@ const userSchema = new Schema<UserDocument>(
       unique: true,
       lowercase: true,
       trim: true,
+      match: /^[a-z0-9_]+$/,
+      minlength: 3,
+      maxlength: 64,
     },
     passwordHash: {
       type: String,
       required: true,
+      select: false,
     },
     displayName: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 100,
     },
-    avatarUrl: {
-      type: String,
-    },
-    avatarId: {
-      type: String,
-    },
+    avatarUrl: String,
+    avatarPublicId: String,
     bio: {
       type: String,
       maxlength: 500,
     },
-    phone: {
+    phoneNumber: {
       type: String,
       sparse: true,
+    },
+    deletedAt: {
+      type: Date,
+      index: true,
+      default: null,
     },
   },
   {

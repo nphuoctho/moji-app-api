@@ -20,6 +20,11 @@ const authSessionSchema = new Schema<AuthSessionDocument>(
       required: true,
       index: true,
     },
+    ip: {
+      type: String,
+      default: null,
+      index: true,
+    },
     refreshTokenHash: {
       type: String,
       required: true,

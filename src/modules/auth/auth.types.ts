@@ -1,27 +1,32 @@
-export interface SignUpPayload {
-  email: string
-  username: string
-  password: string
-  firstname: string
-  lastname: string
-}
+import type { Types } from 'mongoose'
 
-export interface SignInPayload {
-  email: string
-  password: string
-  deviceId: string
-}
-
-export interface RefreshTokenPayload {
-  deviceId: string
-}
-
-export interface TokenPayload {
+export interface AccessTokenClaims {
   sub: string // user ID
   sid: string
   kid: string
 }
 
-export interface AuthTokens {
-  accessToken: string
+export interface RotateRefreshParams {
+  currentRefreshTokenHash: string
+  deviceId: string
+  nextRefreshTokenHash: string
+  nextJti: string
+  nextExpiresAt: Date
+  ip?: string
+  userAgent?: string
+}
+
+export interface RotateRefreshResult {
+  oldSession: {
+    _id: Types.ObjectId
+    userId: Types.ObjectId
+    keyId: Types.ObjectId
+    deviceId: string
+  }
+  newSession: {
+    _id: Types.ObjectId
+    userId: Types.ObjectId
+    keyId: Types.ObjectId
+    deviceId: string
+  }
 }

@@ -60,14 +60,14 @@ describe('AuthRepository', () => {
     })
   })
 
-  describe('findActiveSesssionByHash', () => {
+  describe('findActiveSessionByHash', () => {
     it('should find active session by refresh token hash', async () => {
       const mockSession = { _id: 'session-1', userId: 'user-1' }
       vi.mocked(AuthSessionModel.findOne).mockReturnValue({
         exec: vi.fn().mockResolvedValue(mockSession),
       } as never)
 
-      const result = await repository.findActiveSesssionByHash('hashed-token')
+      const result = await repository.findActiveSessionByHash('hashed-token')
 
       expect(AuthSessionModel.findOne).toHaveBeenCalledWith({
         refreshTokenHash: 'hashed-token',
@@ -81,20 +81,20 @@ describe('AuthRepository', () => {
         exec: vi.fn().mockResolvedValue(null),
       } as never)
 
-      const result = await repository.findActiveSesssionByHash('invalid-hash')
+      const result = await repository.findActiveSessionByHash('invalid-hash')
 
       expect(result).toBeNull()
     })
   })
 
-  describe('revokedSession', () => {
+  describe('revokeSession', () => {
     it('should revoke a session by ID', async () => {
       const mockSession = { _id: 'session-1', revokedAt: new Date() }
       vi.mocked(AuthSessionModel.findByIdAndUpdate).mockReturnValue({
         exec: vi.fn().mockResolvedValue(mockSession),
       } as never)
 
-      const result = await repository.revokedSession('507f1f77bcf86cd799439011' as never)
+      const result = await repository.revokeSession('507f1f77bcf86cd799439011' as never)
 
       expect(AuthSessionModel.findByIdAndUpdate).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011',

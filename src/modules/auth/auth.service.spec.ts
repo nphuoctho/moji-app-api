@@ -1,10 +1,10 @@
 import type { Types } from 'mongoose'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppError } from '@/shared/middlewares/error.middleware'
-import type { AuthRepository } from './auth.repository'
-import { AuthService } from './auth.service'
 import type { SigningKeyService } from '../signing-key/signing-key.service'
 import type { UserRepository } from '../user/user.repository'
+import type { AuthRepository } from './auth.repository'
+import { AuthService } from './auth.service'
 
 vi.mock('bcrypt')
 vi.mock('jsonwebtoken')
@@ -25,9 +25,9 @@ describe('AuthService', () => {
   beforeEach(() => {
     mockAuthRepository = {
       createSession: vi.fn(),
-      findActiveSesssionByHash: vi.fn(),
+      findActiveSessionByHash: vi.fn(),
       rotateRefreshSession: vi.fn(),
-      revokedSession: vi.fn(),
+      revokeSession: vi.fn(),
       revokeSessionsByUserId: vi.fn(),
     } as unknown as AuthRepository
 
@@ -90,8 +90,8 @@ describe('AuthService', () => {
             email: 'test@example.com',
             username: 'testuser',
             password: 'password123',
-            firstname: 'Test',
-            lastname: 'User',
+            firstName: 'Test',
+            lastName: 'User',
           },
           { ip: '127.0.0.1', deviceId: 'device-1' },
         ),
@@ -108,8 +108,8 @@ describe('AuthService', () => {
             email: 'test@example.com',
             username: 'existinguser',
             password: 'password123',
-            firstname: 'Test',
-            lastname: 'User',
+            firstName: 'Test',
+            lastName: 'User',
           },
           { ip: '127.0.0.1', deviceId: 'device-1' },
         ),
@@ -119,7 +119,7 @@ describe('AuthService', () => {
 
   describe('refresh', () => {
     it('should throw error if session not found', async () => {
-      vi.mocked(mockAuthRepository.findActiveSesssionByHash).mockResolvedValue(null)
+      vi.mocked(mockAuthRepository.findActiveSessionByHash).mockResolvedValue(null)
 
       await expect(
         authService.refresh('invalid-token', 'device-1', { ip: '127.0.0.1' }),
@@ -132,7 +132,7 @@ describe('AuthService', () => {
         deviceId: 'device-1',
         expiresAt: new Date(Date.now() - 1000),
       }
-      vi.mocked(mockAuthRepository.findActiveSesssionByHash).mockResolvedValue(expiredSession)
+      vi.mocked(mockAuthRepository.findActiveSessionByHash).mockResolvedValue(expiredSession)
 
       await expect(
         authService.refresh('valid-token', 'device-1', { ip: '127.0.0.1' }),
@@ -142,11 +142,11 @@ describe('AuthService', () => {
 
   describe('signOutCurrentSession', () => {
     it('should call repository to revoke session', async () => {
-      vi.mocked(mockAuthRepository.revokedSession).mockResolvedValue({} as never)
+      vi.mocked(mockAuthRepository.revokeSession).mockResolvedValue({} as never)
 
       await authService.signOutCurrentSession('507f1f77bcf86cd799439011')
 
-      expect(mockAuthRepository.revokedSession).toHaveBeenCalledWith(
+      expect(mockAuthRepository.revokeSession).toHaveBeenCalledWith(
         '507f1f77bcf86cd799439011' as never,
       )
     })

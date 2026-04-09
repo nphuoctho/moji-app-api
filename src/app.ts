@@ -6,10 +6,10 @@ import helmet from 'helmet'
 import { pinoHttp } from 'pino-http'
 import { env } from './config/env'
 import router from './modules/index.routes'
+import { setupOpenAPI } from './shared/docs/openapi'
 import { errorMiddleware } from './shared/middlewares/error.middleware'
 import { notFoundMiddleware } from './shared/middlewares/not-found.middleware'
 import { logger } from './shared/utils/logger.util'
-import { setupSwagger } from './shared/utils/swagger.util'
 
 export function createApp(): express.Application {
   const app = express()
@@ -41,7 +41,7 @@ export function createApp(): express.Application {
   )
 
   app.use('/api/v1', router)
-  setupSwagger(app)
+  setupOpenAPI(app)
 
   // Error Handler
   app.use(notFoundMiddleware)

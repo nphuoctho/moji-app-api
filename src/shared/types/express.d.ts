@@ -1,9 +1,9 @@
-import type { TokenPayload } from '@/modules/auth/auth.types'
+import type { AccessTokenClaims } from '@/modules/auth/auth.types'
 
 declare global {
   namespace Express {
     interface Request {
-      user?: TokenPayload
+      user?: AccessTokenClaims
     }
   }
 }

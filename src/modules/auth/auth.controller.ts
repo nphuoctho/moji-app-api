@@ -31,13 +31,13 @@ export class AuthController {
   }
 
   signUpHandler = async (req: ValidatedRequest<typeof signUpDto>, res: Response) => {
-    const { firstname, lastname, deviceId, ...rest } = req.body
+    const { firstName, lastName, deviceId, ...rest } = req.body
 
     const result = await this.authService.signUp(
       {
         ...rest,
-        firstname,
-        lastname,
+        firstName,
+        lastName,
       },
       {
         ip: req.ip,
@@ -51,7 +51,7 @@ export class AuthController {
   }
 
   refreshHandler = async (req: ValidatedRequest<typeof refreshDto>, res: Response) => {
-    const refreshToken = req.cookies?.refresh_token
+    const refreshToken = req.cookies?.[this.REFRESH_TOKEN]
     if (!refreshToken) {
       sendError(res, 'Missing refresh token', 401)
       return

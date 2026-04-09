@@ -1,6 +1,6 @@
 import type { Request } from 'express'
 import type { ZodObject, z } from 'zod'
-import type { TokenPayload } from '@/modules/auth/auth.types'
+import type { AccessTokenClaims } from '@/modules/auth/auth.types'
 
 /**
  * Represents a type-safe Express request object validated by a Zod schema.
@@ -26,5 +26,5 @@ export type AuthenticatedRequest<T extends ZodObject = ZodObject<z.ZodRawShape>>
   ValidatedRequest<T>,
   'user'
 > & {
-  user: TokenPayload
+  user: AccessTokenClaims
 }

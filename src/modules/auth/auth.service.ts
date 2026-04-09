@@ -1,16 +1,18 @@
 import crypto from 'node:crypto'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import type { Types } from 'mongoose'
+import { Types } from 'mongoose'
 import { env } from '@/config/env'
 import { AppError } from '@/shared/middlewares/error.middleware'
 import { hashToken } from '../../shared/utils/crypto.util'
 import { type SigningKeyService, signingKeyService } from '../signing-key/signing-key.service'
 import type { SigningKeyDocument } from '../signing-key/signing-key.types'
 import { type UserRepository, userRepository } from '../user/user.repository'
-import type { UserDocument } from '../user/user.types'
+import type { UserEntity } from '../user/user.types'
 import { type AuthRepository, authRepository } from './auth.repository'
-import type { SignInPayload, SignUpPayload, TokenPayload } from './auth.types'
+import type { AccessTokenClaims } from './auth.types'
+import type { SignInDtoOutput } from './dto/sign-in.dto'
+import type { SignUpDtoOutput } from './dto/sign-up.dto'
 
 export class AuthService {
   private readonly ACCESS_ALG = 'RS256'
@@ -23,7 +25,7 @@ export class AuthService {
     private readonly signingKeyService: SigningKeyService,
   ) {}
 
-  private signAccessToken(payload: TokenPayload, privateKey: string): string {
+  private signAccessToken(payload: AccessTokenClaims, privateKey: string): string {
     return jwt.sign(payload, privateKey, {
       algorithm: this.ACCESS_ALG,
       expiresIn: this.ACCESS_EXPIRES_IN_SECONDS,
@@ -82,11 +84,11 @@ export class AuthService {
     return { session, refreshToken }
   }
 
-  private buildAccessTokenPayload(
+  private buildAccessTokenClaims(
     userId: Types.ObjectId,
     sessionId: Types.ObjectId,
     kid: string,
-  ): TokenPayload {
+  ): AccessTokenClaims {
     return {
       sub: String(userId),
       sid: String(sessionId),
@@ -94,35 +96,27 @@ export class AuthService {
     }
   }
 
-  private async validateRefreshSession(refreshToken: string, deviceId: string) {
-    const hashed = hashToken(refreshToken)
-    const session = await this.authRepository.findActiveSesssionByHash(hashed)
-
-    if (!session || session.deviceId !== deviceId) {
-      throw new Error('Invalid refresh token')
+  private toObjectId(id: string): Types.ObjectId {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new AppError('Invalid ObjectId', 400)
     }
 
-    if (session.expiresAt.getTime() <= Date.now()) {
-      await this.authRepository.revokedSession(session._id)
-      throw new Error('Refresh token expired')
-    }
-
-    return session
+    return new Types.ObjectId(id)
   }
 
   private generateAccessToken(
-    user: UserDocument,
+    user: UserEntity,
     sessionId: Types.ObjectId,
     key: SigningKeyDocument,
   ) {
     const privateKey = this.signingKeyService.getPrivateKeyFromRecord(key.privateKeyEncrypted)
 
-    const payload = this.buildAccessTokenPayload(user._id, sessionId, key.kid)
+    const payload = this.buildAccessTokenClaims(user._id, sessionId, key.kid)
 
     return this.signAccessToken(payload, privateKey)
   }
 
-  async signIn(signInPayload: SignInPayload, meta: { ip?: string; userAgent?: string }) {
+  async signIn(signInPayload: SignInDtoOutput, meta: { ip?: string; userAgent?: string }) {
     const user = await this.validateCredentials(signInPayload.email, signInPayload.password)
 
     const key = await this.getOrCreateSigningKey(user._id)
@@ -140,7 +134,7 @@ export class AuthService {
   }
 
   async signUp(
-    signUpPayload: SignUpPayload,
+    signUpPayload: Omit<SignUpDtoOutput, 'deviceId'>,
     meta: { ip?: string; userAgent?: string; deviceId: string },
   ) {
     const [emailTaken, usernameTaken] = await Promise.all([
@@ -157,7 +151,7 @@ export class AuthService {
       email: signUpPayload.email,
       username: signUpPayload.username,
       passwordHash,
-      displayName: `${signUpPayload.firstname} ${signUpPayload.lastname}`,
+      displayName: `${signUpPayload.firstName} ${signUpPayload.lastName}`,
     })
 
     const key = await this.signingKeyService.createSigningKey(user._id)
@@ -173,49 +167,50 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string, deviceId: string, meta: { ip?: string; userAgent?: string }) {
-    const session = await this.validateRefreshSession(refreshToken, deviceId)
-    const user = await this.userRepository.findUserById(session.userId)
-    if (!user) {
-      throw new AppError('User not found', 401)
-    }
-
-    const key = await this.signingKeyService.getSigningKeyById(session.keyId)
-    if (!key) {
-      throw new AppError('Signing key not found', 404)
-    }
+    const currentRefreshTokenHash = hashToken(refreshToken)
 
     const newRefreshToken = crypto.randomBytes(48).toString('base64url')
-    const newRefreshTokenHash = hashToken(newRefreshToken)
-    const newExpiresAt = new Date(Date.now() + this.REFRESH_EXPIRES_IN_SECONDS * 1000)
+    const nextRefreshTokenHash = hashToken(newRefreshToken)
+    const nextExpiresAt = new Date(Date.now() + this.REFRESH_EXPIRES_IN_SECONDS * 1000)
+    const nextJti = crypto.randomUUID()
 
-    // Todo: need check why new session undefined
-    const newSession = await this.authRepository.rotateRefreshSession(session._id, {
-      userId: session.userId,
-      keyId: session.keyId,
+    const rotatedSession = await this.authRepository.rotateRefreshSessionAtomic({
+      currentRefreshTokenHash,
       deviceId,
-      refreshTokenHash: newRefreshTokenHash,
-      jti: crypto.randomUUID(),
-      expiresAt: newExpiresAt,
+      nextRefreshTokenHash,
+      nextJti,
+      nextExpiresAt,
       ip: meta?.ip,
       userAgent: meta?.userAgent,
-      rotatedFromSessionId: session._id,
     })
 
-    if (!newSession) {
+    if (!rotatedSession) {
       throw new AppError('Create new session faild', 401)
     }
 
-    const accessToken = this.generateAccessToken(user, newSession._id, key)
+    const user = await this.userRepository.findUserById(rotatedSession.oldSession.userId)
+    if (!user) {
+      await this.authRepository.revokeSession(rotatedSession.newSession._id)
+      throw new AppError('User not found', 401)
+    }
+
+    const key = await this.signingKeyService.getSigningKeyById(rotatedSession.oldSession.keyId)
+    if (!key) {
+      await this.authRepository.revokeSession(rotatedSession.newSession._id)
+      throw new AppError('Signing key not found', 401)
+    }
+
+    const accessToken = this.generateAccessToken(user, rotatedSession.newSession._id, key)
 
     return { accessToken, refreshToken: newRefreshToken }
   }
 
   async signOutCurrentSession(sessionId: string) {
-    return this.authRepository.revokedSession(sessionId as never)
+    return this.authRepository.revokeSession(this.toObjectId(sessionId))
   }
 
   async signOutAllSession(userId: string) {
-    return this.authRepository.revokeSessionsByUserId(userId as never)
+    return this.authRepository.revokeSessionsByUserId(this.toObjectId(userId))
   }
 }
 

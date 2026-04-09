@@ -24,7 +24,7 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(7 * 24 * 60 * 60), // 7 days
-  JWT_PRIVATE_KEY_ENCRYPTION_KEY: z.string().min(1),
+  JWT_PRIVATE_ENCRYPTION_KEY: z.string().min(1),
   CLIENT_URL: z.url().default('http://localhost:5173'),
 })
 
