@@ -7,6 +7,7 @@ import helmet from 'helmet'
 import { pinoHttp } from 'pino-http'
 import { env } from './config/env'
 import router from './modules/index.routes'
+import { setupOpenAPI } from './shared/docs/openapi'
 import { errorMiddleware } from './shared/middlewares/error.middleware'
 import { notFoundMiddleware } from './shared/middlewares/not-found.middleware'
 import { logger } from './shared/utils/logger.util'
@@ -49,6 +50,7 @@ export function createApp(): express.Application {
     sendData(res, { message: 'Welcome to moji-api-app! Please visit /api/v1 for API endpoints.' }),
   )
   app.use('/api/v1', router)
+  setupOpenAPI(app)
 
   // Error handling
   app.use(notFoundMiddleware)
