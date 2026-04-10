@@ -1,8 +1,8 @@
 import type { Types } from 'mongoose'
 import mongoose from 'mongoose'
+import type { RotateRefreshParams, RotateRefreshResult } from './auth.types'
 import { AuthSessionModel } from './auth-session.schema'
 import type { AuthSessionPayload } from './auth-session.types'
-import type { RotateRefreshParams, RotateRefreshResult } from './auth.types'
 
 export class AuthRepository {
   constructor(private readonly authSessionModel: typeof AuthSessionModel) {}
@@ -21,7 +21,9 @@ export class AuthRepository {
     return this.authSessionModel.findOne({ refreshTokenHash, revokedAt: null }).exec()
   }
 
-  async rotateRefreshSessionAtomic(params: RotateRefreshParams): Promise<RotateRefreshResult | null> {
+  async rotateRefreshSessionAtomic(
+    params: RotateRefreshParams,
+  ): Promise<RotateRefreshResult | null> {
     const mongoSession = await mongoose.startSession()
 
     try {

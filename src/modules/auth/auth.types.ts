@@ -1,7 +1,7 @@
 import type { Types } from 'mongoose'
 
 export interface AccessTokenClaims {
-  sub: string // user ID
+  sub: string
   sid: string
   kid: string
 }

@@ -1,6 +1,6 @@
 import type { Request } from 'express'
 import type { ZodObject, z } from 'zod'
-import type { AccessTokenClaims } from '@/modules/auth/auth.types'
+import type { AccessTokenClaims } from './auth.types'
 
 /**
  * Represents a type-safe Express request object validated by a Zod schema.

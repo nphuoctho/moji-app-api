@@ -9,10 +9,11 @@ import { refreshDto, signInDto, signUpDto } from './auth.validator'
 
 const authRouter: Router = Router()
 
-authRouter.post('/sign-up', validate(signUpDto), authController.signUpHandler)
-authRouter.post('/sign-in', validate(signInDto), authController.signInHandler)
-authRouter.post('/refresh', validate(refreshDto), authController.refreshHandler)
-authRouter.post('/sign-out', authenticate, withAuth(authController.signOutHandler))
-authRouter.post('/sign-out-all', authenticate, withAuth(authController.signOutAllHandler))
+authRouter.post('/registrations', validate(signUpDto), authController.signUpHandler)
+authRouter.post('/sessions', validate(signInDto), authController.signInHandler)
+authRouter.post('/access-tokens', validate(refreshDto), authController.refreshHandler)
+
+authRouter.delete('/sessions/current', authenticate, withAuth(authController.signOutHandler))
+authRouter.delete('/sessions', authenticate, withAuth(authController.signOutAllHandler))
 
 export { authRouter }

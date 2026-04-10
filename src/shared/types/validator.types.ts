@@ -1,11 +1,15 @@
-export interface ValidationErrorItem {
+export interface FieldError {
   field: string
-  messages: string[]
+  message: string
 }
 
 export interface ValidationErrorResponse {
-  success: false
-  statusCode: number
-  message: string
-  errors: ValidationErrorItem[]
+  error: {
+    code: 'VALIDATION_ERROR'
+    message: string
+    details: FieldError[]
+  }
+  meta?: {
+    requestId?: string
+  }
 }

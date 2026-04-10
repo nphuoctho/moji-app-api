@@ -1,5 +1,6 @@
 import crypto from 'node:crypto'
 import bcrypt from 'bcrypt'
+import { StatusCodes } from 'http-status-codes'
 import jwt from 'jsonwebtoken'
 import { Types } from 'mongoose'
 import { env } from '@/config/env'
@@ -37,14 +38,35 @@ export class AuthService {
   private async validateCredentials(email: string, password: string) {
     const user = await this.userRepository.findUserByEmail(email)
 
-    const dummyHash = '$2b$12$invalidhashfortimingprotection000000000000000000000'
-    const ok = await bcrypt.compare(password, user?.passwordHash ?? dummyHash)
+    if (!user) {
+      throw new AppError('Invalid Credentials', StatusCodes.UNAUTHORIZED, [
+        {
+          field: 'email',
+          message: 'Email not found',
+        },
+      ])
+    }
 
-    if (!user || !ok) {
-      throw new AppError('Invalid credentials', 401)
+    const isPasswordValid = await this.verifyPassword(password, user.passwordHash)
+
+    if (!isPasswordValid) {
+      throw new AppError('Invalid Credentials', StatusCodes.UNAUTHORIZED, [
+        {
+          field: 'password',
+          message: 'Incorrect password',
+        },
+      ])
     }
 
     return user
+  }
+
+  private async verifyPassword(password: string, hash: string): Promise<boolean> {
+    try {
+      return await bcrypt.compare(password, hash)
+    } catch {
+      return false
+    }
   }
 
   private async getOrCreateSigningKey(userId: Types.ObjectId) {
@@ -98,7 +120,7 @@ export class AuthService {
 
   private toObjectId(id: string): Types.ObjectId {
     if (!Types.ObjectId.isValid(id)) {
-      throw new AppError('Invalid ObjectId', 400)
+      throw new AppError('Invalid ObjectId format', StatusCodes.BAD_REQUEST)
     }
 
     return new Types.ObjectId(id)
@@ -142,8 +164,16 @@ export class AuthService {
       this.userRepository.existsUserByUsername(signUpPayload.username),
     ])
 
-    if (emailTaken) throw new AppError('Email already in use', 409)
-    if (usernameTaken) throw new AppError('Username already taken', 409)
+    if (emailTaken || usernameTaken) {
+      const errors = []
+      if (emailTaken) {
+        errors.push({ field: 'email', message: 'This email is already registered' })
+      }
+      if (usernameTaken) {
+        errors.push({ field: 'username', message: 'This username is already taken' })
+      }
+      throw new AppError('Registration failed', StatusCodes.CONFLICT, errors)
+    }
 
     const passwordHash = await bcrypt.hash(signUpPayload.password, 12)
 
@@ -185,19 +215,19 @@ export class AuthService {
     })
 
     if (!rotatedSession) {
-      throw new AppError('Create new session faild', 401)
+      throw new AppError('Session rotation failed', StatusCodes.UNAUTHORIZED)
     }
 
     const user = await this.userRepository.findUserById(rotatedSession.oldSession.userId)
     if (!user) {
       await this.authRepository.revokeSession(rotatedSession.newSession._id)
-      throw new AppError('User not found', 401)
+      throw new AppError('User account not found', StatusCodes.UNAUTHORIZED)
     }
 
     const key = await this.signingKeyService.getSigningKeyById(rotatedSession.oldSession.keyId)
     if (!key) {
       await this.authRepository.revokeSession(rotatedSession.newSession._id)
-      throw new AppError('Signing key not found', 401)
+      throw new AppError('Authentication key expired or revoked', StatusCodes.UNAUTHORIZED)
     }
 
     const accessToken = this.generateAccessToken(user, rotatedSession.newSession._id, key)

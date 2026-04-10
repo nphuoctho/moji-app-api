@@ -1,4 +1,4 @@
-import type { AccessTokenClaims } from '@/modules/auth/auth.types'
+import type { AccessTokenClaims } from './auth.types'
 
 declare global {
   namespace Express {

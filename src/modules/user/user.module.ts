@@ -1,21 +1,20 @@
 import { Router } from 'express'
+import { sendData } from '@/shared/utils/response.util'
 
 const userRouter: Router = Router()
 
 // userRouter.use(authenticate)
 
 userRouter.get('/', (_req, res) => {
-  return res.status(200).json({
-    message: 'List users endpoint',
-  })
+  return sendData(res, { message: 'List users endpoint' })
 })
 
 userRouter.get('/me', (_req, res) => {
-  res.status(200).json({ data: 'Profile' })
+  return sendData(res, { message: 'Profile' })
 })
 
 userRouter.get('/:userId', (req, res) => {
-  return res.status(200).json({
+  return sendData(res, {
     message: 'Get user detail endpoint',
     userId: req.params.userId,
   })

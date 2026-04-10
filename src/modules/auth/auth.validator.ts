@@ -1,5 +1,6 @@
 import z from 'zod'
-import { SignInDto, SignUpDto } from './dto'
+import { SignInDto } from './dto/sign-in.dto'
+import { SignUpDto } from './dto/sign-up.dto'
 
 export const signUpDto = z.object({
   body: SignUpDto,

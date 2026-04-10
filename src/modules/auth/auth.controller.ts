@@ -1,12 +1,14 @@
 import type { Response } from 'express'
+import { StatusCodes } from 'http-status-codes'
 import { env } from '@/config/env'
 import type { AuthenticatedRequest, ValidatedRequest } from '@/shared/types/request.types'
-import { sendError, sendSuccess } from '@/shared/utils/response.util'
+import { sendCreated, sendData, sendError, sendNoContent } from '@/shared/utils/response.util'
 import { type AuthService, authService } from './auth.service'
 import type { refreshDto, signInDto, signUpDto } from './auth.validator'
 
 export class AuthController {
   private readonly REFRESH_TOKEN = 'refresh_token'
+  private readonly COOKIE_PATH = '/api/v1/auth'
 
   constructor(private readonly authService: AuthService) {}
 
@@ -15,7 +17,7 @@ export class AuthController {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/api/v1/auth/refresh',
+      path: this.COOKIE_PATH,
       maxAge: Number(env.JWT_REFRESH_EXPIRES_IN ?? 604800) * 1000,
     })
   }
@@ -27,7 +29,7 @@ export class AuthController {
     })
 
     this.setRefreshCookie(res, result.refreshToken)
-    sendSuccess(res, { accessToken: result.accessToken }, 200)
+    sendData(res, { accessToken: result.accessToken })
   }
 
   signUpHandler = async (req: ValidatedRequest<typeof signUpDto>, res: Response) => {
@@ -47,13 +49,17 @@ export class AuthController {
     )
 
     this.setRefreshCookie(res, result.refreshToken)
-    sendSuccess(res, { accessToken: result.accessToken }, 201)
+    sendCreated(res, { accessToken: result.accessToken })
   }
 
   refreshHandler = async (req: ValidatedRequest<typeof refreshDto>, res: Response) => {
     const refreshToken = req.cookies?.[this.REFRESH_TOKEN]
     if (!refreshToken) {
-      sendError(res, 'Missing refresh token', 401)
+      sendError(res, {
+        statusCode: StatusCodes.UNAUTHORIZED,
+        code: 'UNAUTHORIZED',
+        message: 'Missing refresh token',
+      })
       return
     }
 
@@ -63,7 +69,7 @@ export class AuthController {
     })
 
     this.setRefreshCookie(res, result.refreshToken)
-    sendSuccess(res, { accessToken: result.accessToken }, 200)
+    sendData(res, { accessToken: result.accessToken })
   }
 
   signOutHandler = async (req: AuthenticatedRequest, res: Response) => {
@@ -73,10 +79,10 @@ export class AuthController {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/api/v1/auth/refresh',
+      path: this.COOKIE_PATH,
     })
 
-    sendSuccess(res, null, 200)
+    sendNoContent(res)
   }
 
   signOutAllHandler = async (req: AuthenticatedRequest, res: Response) => {
@@ -86,10 +92,10 @@ export class AuthController {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/api/v1/auth/refresh',
+      path: this.COOKIE_PATH,
     })
 
-    sendSuccess(res, null, 200)
+    sendNoContent(res)
   }
 }
 
